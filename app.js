@@ -19,7 +19,7 @@ var app = express();
 var productoRouter=require('./routes/producto.route');
 var importacionRouter=require('./routes/importacion.route');
 var importacionProductoRouter=require('./routes/importacion-producto.route');
-
+var mercadoLibreRouter=require('./routes/mercado-libre.route');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -53,6 +53,7 @@ app.use((req,res,next)=>{
 app.use('/api',productoRouter);
 app.use('/api',importacionRouter);
 app.use('/api',importacionProductoRouter);
+app.use('/api',mercadoLibreRouter);
 
 
 // app.get('*',function(req,res,next){
