@@ -7,14 +7,19 @@ var logger = require('morgan');
 var bodyParser=require('body-parser');
 var app = express();
 //cargar rutas declaracion
-var tipoRouter=require('./routes/tipo.route');
-var materialRouter=require('./routes/material.route');
-var usuarioRouter=require('./routes/usuario.route');
-var ingresoRouter=require('./routes/ingreso.route');
-var egresoRouter=require('./routes/egreso.route');
-var proveedorRouter=require('./routes/proveedor.route');
-var garantiaRouter=require('./routes/garantia.route');
-var reportesRouter=require('./routes/reportes.route');
+// var tipoRouter=require('./routes/tipo.route');
+// var materialRouter=require('./routes/material.route');
+// var usuarioRouter=require('./routes/usuario.route');
+// var ingresoRouter=require('./routes/ingreso.route');
+// var egresoRouter=require('./routes/egreso.route');
+// var proveedorRouter=require('./routes/proveedor.route');
+// var garantiaRouter=require('./routes/garantia.route');
+// var reportesRouter=require('./routes/reportes.route');
+
+var productoRouter=require('./routes/producto.route');
+var importacionRouter=require('./routes/importacion.route');
+var importacionProductoRouter=require('./routes/importacion-producto.route');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -37,14 +42,18 @@ app.use((req,res,next)=>{
 // app.use('/',express.static('client',{redirect:false}));
 //-----Rutas creadas -------- 
 // app.use('/', indexRouter);
-app.use('/api',tipoRouter);
-app.use('/api',materialRouter);
-app.use('/api',usuarioRouter);
-app.use('/api',ingresoRouter);
-app.use('/api',egresoRouter);
-app.use('/api',proveedorRouter);
-app.use('/api',garantiaRouter);
-app.use('/api',reportesRouter);
+// app.use('/api',tipoRouter);
+// app.use('/api',materialRouter);
+// app.use('/api',usuarioRouter);
+// app.use('/api',ingresoRouter);
+// app.use('/api',egresoRouter);
+// app.use('/api',proveedorRouter);
+// app.use('/api',garantiaRouter);
+// app.use('/api',reportesRouter);
+app.use('/api',productoRouter);
+app.use('/api',importacionRouter);
+app.use('/api',importacionProductoRouter);
+
 
 // app.get('*',function(req,res,next){
 // 	res.sendFile(path.resolve('client/index.html'));

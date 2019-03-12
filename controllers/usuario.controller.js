@@ -3,12 +3,52 @@ var db=require('./../bdd.coneccion');
 var bcrypt = require('bcrypt-nodejs');
 var jwt=require('../services/jwt');
 
+
+function findUsuarios(req, res) {
+  const queryParams = req.body;
+  const filter = queryParams.filter || '',
+        sortOrder = queryParams.sortOrder,
+        pageNumber = parseInt(queryParams.pageNumber) || 0,
+        pageSize = parseInt(queryParams.pageSize);
+  var nitems=pageNumber*pageSize;
+      
+        db.any('SELECT * FROM usuario LIMIT '+pageSize+' OFFSET '+nitems)
+        .then(function (data) {
+          var items=data;
+            db.any("select count(*)  from usuario")
+            .then(function (total) {
+                res.status(200)
+                .json({
+                  result:'OK',
+                  items:items,
+                  total:total[0].count
+                }      
+              );  
+            })
+            .catch(function (err) {
+              console.log(err);
+              res.status(400).json({
+                result:'ERROR',
+                message:err
+              })
+            });
+        })
+        .catch(function (err) {
+          console.log(err);
+          res.status(400).json({
+            result:'ERROR',
+            message:err
+          })
+        });         
+}
+
+
 function crudUsuario(req, res, next) {
-    console.log([req.body.idusuario,req.body.nombre,req.body.apellido,req.body.clave,req.body.cedula,req.body.rol,req.body.opcion]);
+    console.log([req.body.idusuario,req.body.nombres,req.body.apellidos,req.body.clave,req.body.cedula,req.body.rol,req.body.opcion]);
     var SQL = 'select * from  fun_ime_usuario($1, $2, $3, $4, $5, $6, $7);'
     db.any(SQL,[req.body.idusuario,
-      req.body.nombre,
-      req.body.apellido,
+      req.body.nombres,
+      req.body.apellidos,
       req.body.clave,
       req.body.cedula,
       req.body.rol,
@@ -24,20 +64,6 @@ function crudUsuario(req, res, next) {
       });
 }
 
-
-function getUsuariosSelect(req, res, next) {
-
-    var SQL = 'select * from usuario where estado=1';
-    db.any(SQL)
-    .then(function (data) {
-        res.status(200)
-        .json(data);
-    }).catch(function (err) {
-      console.log(err);
-      res.status(500)
-      .json(err);
-    });
-}
 
 
 
@@ -87,38 +113,8 @@ function login(req,res){
       });
   }
 
-  function getTotalUsuarios(req, res, next) {
-    db.any("select count(*)  from usuario where estado=1")
-      .then(function (data) {
-        res.status(200)
-          .json({
-            status: 'success',
-            data: data,
-            message: 'Se obtuvo el total de registros de usuarios'
-          });
-      })
-      .catch(function (err) {
-        console.log(err);
-        res.status(400).json(err)
-      });
-  }
-  function getUsuarios(req, res, next) {
-    var SQL = 'select * from  usuario where estado=1';
-    db.any(SQL, [req.body.idusuario,req.body.nombre,req.body.apellido,req.body.rol
-      ,req.body.clave,req.body.opcion])
-    .then(function (data) {
-      res.status(200)
-        .json({
-          status: 'success',
-          data: data,
-          message: 'Se ejecuto '
-        });
-    })
-    .catch(function (err) {
-      console.log(err);
-      res.status(400).json(err)
-    });
-  }
+
+  
   function cambiarClave(req,res,next){
     console.log(req.body);
     var params=req.body;
@@ -167,10 +163,8 @@ function login(req,res){
   
 
 module.exports = {
+  findUsuarios:findUsuarios,
   login:login,
   crudUsuario:crudUsuario,
-  getUsuariosSelect:getUsuariosSelect,
-  getTotalUsuarios:getTotalUsuarios,
-  getUsuarios:getUsuarios,
   cambiarClave:cambiarClave
 };

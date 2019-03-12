@@ -59,8 +59,6 @@ var db=require('./../bdd.coneccion');
       });
     } 
 
-
-
   
   function crudIngreso(req, res, next) {
     console.log([req.body.idingreso,req.body.idusuario,
