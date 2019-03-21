@@ -21,7 +21,7 @@ function findUsuarios(req, res) {
                 .json({
                   result:'OK',
                   items:items,
-                  total:total[0].count
+                  totalCount:total[0].count
                 }      
               );  
             })
@@ -44,15 +44,15 @@ function findUsuarios(req, res) {
 
 
 function crudUsuario(req, res, next) {
-    console.log([req.body.idusuario,req.body.nombres,req.body.apellidos,req.body.clave,req.body.cedula,req.body.rol,req.body.opcion]);
+    console.log([req.body.idusuario,req.body.nombres,req.body.apellidos,req.body.cedula,req.body.opcion,req.body.clave,req.body.rol]);
     var SQL = 'select * from  fun_ime_usuario($1, $2, $3, $4, $5, $6, $7);'
     db.any(SQL,[req.body.idusuario,
       req.body.nombres,
       req.body.apellidos,
-      req.body.clave,
       req.body.cedula,
-      req.body.rol,
-      req.body.opcion])
+      req.body.opcion,
+      req.body.clave,
+      req.body.rol])
       .then(function (data) {
       res.status(200)
       .json(data);
@@ -70,8 +70,9 @@ function crudUsuario(req, res, next) {
 
 function login(req,res){
     var params=req.body;
-    var password=params.clave;
-    var id=params.idusuario;
+    console.log(params);
+    var password=params.password;
+    var id=params.cedula;
     console.log(password);
     // console.log(params.gettoken);
     db.any('select * from usuario where cedula=$1',id)

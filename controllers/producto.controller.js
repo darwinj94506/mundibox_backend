@@ -101,7 +101,7 @@ function findProductoByCodigoFabricante(req,res){
 
 
 function crudProducto(req,res,next){
-  var SQL = 'select * from  fun_ime_producto($1, $2, $3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14);';
+  var SQL = 'select * from  fun_ime_producto($1, $2, $3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15);';
   console.log([
     req.body.idproducto,
     req.body.codigo,
@@ -117,6 +117,7 @@ function crudProducto(req,res,next){
     req.body.situacion,
     req.body.preciofacturar,
     req.body.opcion,
+    req.body.imagenes
   ]);
 
 
@@ -136,6 +137,7 @@ function crudProducto(req,res,next){
     req.body.situacion,
     req.body.preciofacturar,
     req.body.opcion,
+    req.body.imagenes
   ])
   .then(function(data){
     res.status(200)

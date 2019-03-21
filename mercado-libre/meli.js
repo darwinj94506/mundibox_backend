@@ -146,7 +146,8 @@ var Meli = function (client_id, client_secret, access_token, refresh_token) {
             convertObjectToQueryString({});
 
         path = config.api_root_url + (path.charAt(0) == '/' ? '' : '/') + path + query;
-        //console.log(path);
+        console.log("path");
+        console.log(path);
         needle.post(path, body, {
             json: true,
             headers: {

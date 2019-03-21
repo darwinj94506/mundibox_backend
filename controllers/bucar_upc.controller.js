@@ -18,7 +18,6 @@ exports.buscarUPC = function(request, response) {
 
     invocarServicio(request.body.upc,options, function (err,result) {
         if (err) {
-            console('aqui');
             console.log(err);
              response.status(500).json(JSON.parse(err));
             // next(null, err);

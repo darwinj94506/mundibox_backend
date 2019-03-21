@@ -10,5 +10,4 @@ router.post('/crudProducto',ProductoController.crudProducto);
 router.get('/findProductoByCodigoFabricante/:codigofabricante',ProductoController.findProductoByCodigoFabricante);
 // router.post('/findProductosByImportacion',ProductoController.findProductosByImportacion);
 router.post('/buscarupc',buscar_upcController.buscarUPC);
-
 module.exports = router;

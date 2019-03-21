@@ -9,7 +9,7 @@ var app = express();
 //cargar rutas declaracion
 // var tipoRouter=require('./routes/tipo.route');
 // var materialRouter=require('./routes/material.route');
-// var usuarioRouter=require('./routes/usuario.route');
+var usuarioRouter=require('./routes/usuario.route');
 // var ingresoRouter=require('./routes/ingreso.route');
 // var egresoRouter=require('./routes/egreso.route');
 // var proveedorRouter=require('./routes/proveedor.route');
@@ -20,6 +20,8 @@ var productoRouter=require('./routes/producto.route');
 var importacionRouter=require('./routes/importacion.route');
 var importacionProductoRouter=require('./routes/importacion-producto.route');
 var mercadoLibreRouter=require('./routes/mercado-libre.route');
+var publicacionRouter=require('./routes/publicacion.route');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -44,7 +46,7 @@ app.use((req,res,next)=>{
 // app.use('/', indexRouter);
 // app.use('/api',tipoRouter);
 // app.use('/api',materialRouter);
-// app.use('/api',usuarioRouter);
+app.use('/api',usuarioRouter);
 // app.use('/api',ingresoRouter);
 // app.use('/api',egresoRouter);
 // app.use('/api',proveedorRouter);
@@ -54,6 +56,7 @@ app.use('/api',productoRouter);
 app.use('/api',importacionRouter);
 app.use('/api',importacionProductoRouter);
 app.use('/api',mercadoLibreRouter);
+app.use('/api',publicacionRouter);
 
 
 // app.get('*',function(req,res,next){
