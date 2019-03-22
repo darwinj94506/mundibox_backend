@@ -106,7 +106,10 @@ function notificaciones(request, response, next) {
       }else{
           var redirecturi= meliObject.getAuthURL(redirec_uri);
           console.log(redirecturi);
-          res.status(301).redirect(redirecturi); 
+          res.status(400).json({
+            result:"TOKEN_REQUERIDO",
+            message:redirecturi
+          }); 
       }
   }
   
