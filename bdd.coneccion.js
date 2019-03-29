@@ -11,7 +11,7 @@ var options = {
 };
 
 var pgp = require('pg-promise')(options);
-const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v1";
+const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2";
 // const connectionString = {
 //   host: '172.18.1.146',
 //   port: 5432,

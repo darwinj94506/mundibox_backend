@@ -35,7 +35,7 @@ var db=require('./../bdd.coneccion');
     console.log(JSON.stringify(cuerpo));
     var lista='';
    for (var i in cuerpo){
-     lista+='select '+cuerpo[i].idmaterial+'::integer idmaterial, '+cuerpo[i].cantidad+'::integer cantidad';
+     lista+='select '+cuerpo[i].idproducto+'::integer idproducto, '+cuerpo[i].cantidad+'::integer cantidad';
       if(i==(cuerpo.length-1)){
         lista+=';';
       }else{
@@ -100,7 +100,7 @@ function getEgresosPaginacion(req, res, next) {
   console.log(itemsPerPage);
   var page2=page*itemsPerPage;
   console.log(page2);
-  db.any('select e.idegreso, e.idusuario, u.nombre usuario, e.idsolicitante,s.nombre nombre, s.apellido apellido, e.memorando, e.fecha, e.observacion, e.estado from egreso e join usuario u on e.idusuario = u.idusuario join usuario s on e.idsolicitante = s.idusuario ORDER BY fecha DESC LIMIT '+itemsPerPage+' OFFSET '+page2)
+  db.any('select e.idegreso, e.idusuario, u.nombres usuario, e.idsolicitante,s.nombres nombre, s.apellidos apellido, e.fecha, e.observacion, e.estado from egreso e join usuario u on e.idusuario = u.idusuario join usuario s on e.idsolicitante = s.idusuario ORDER BY fecha DESC LIMIT '+itemsPerPage+' OFFSET '+page2)
     .then(function (data) {
       res.status(200)
         .json({
@@ -129,25 +129,30 @@ function getEgresosPaginacion(req, res, next) {
   } 
  
   function crudEgreso(req, res, next) {
-    var SQL = 'select * from  fun_ime_egreso($1, $2, $3, $4, $5, $6);';
-    db.any(SQL,[req.body.idegreso,req.body.idusuario,req.body.idsolicitante,
-      req.body.memorando,req.body.observacion,req.body.opcion]).then(function (data) {
+    var SQL = 'select * from  fun_ime_egreso($1, $2, $3, $4, $5, $6,$7);';
+    console.log([req.body.idegreso,req.body.idusuario,req.body.idsolicitante,
+      req.body.observacion,req.body.iva,0,req.body.opcion]);
+    db.any(SQL,[req.body.idegreso,1,1,
+      req.body.observacion,req.body.iva,0,req.body.opcion]).then(function (data) {
       res.status(200)
         .json(data);
     })
     .catch(function (err) {
+      console.log(err);
       res.status(500).json(err)
     });
   }
 
   function crudDetalle(req, res, next) {
-   console.log([req.body.iddetalle,req.body.idegreso,req.body.idingreso,req.body.cantidad,req.body.opcion,req.body.idmaterial,req.body.estado]);
-    var SQL = 'select * from  fun_ime_detalle_egreso($1, $2, $3, $4, $5,$6,$7);';
-    db.any(SQL,[req.body.iddetalle,req.body.idegreso,req.body.idingreso,req.body.cantidad,req.body.opcion,req.body.idmaterial,req.body.estado]).then(function (data) {
+    var body=req.body;
+   console.log([body.iddetalle,body.idegreso,body.idproducto,body.cantidad,0,body.opcion]);
+    var SQL = 'select * from  fun_ime_detalle_egreso($1, $2, $3, $4, $5,$6);';
+    db.any(SQL,[body.iddetalle,body.idegreso,body.idproducto,body.cantidad,0,body.opcion]).then(function (data) {
       res.status(200)
         .json(data);
     })
     .catch(function (err) {
+      console.log(err);
       res.status(500).json(err)
     });
   }

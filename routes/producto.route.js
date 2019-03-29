@@ -4,7 +4,7 @@ var ProductoController=require('./../controllers/producto.controller');
 var buscar_upcController=require('./../controllers/bucar_upc.controller');
 
 // router.post('/getListaTipos', MaterialController.getListaTipos);
-
+router.post('/getMaterialesSelect2',ProductoController.getMaterialesSelect2);
 router.post('/findProductos',ProductoController.findProductos);
 router.post('/crudProducto',ProductoController.crudProducto);
 router.get('/findProductoByCodigoFabricante/:codigofabricante',ProductoController.findProductoByCodigoFabricante);

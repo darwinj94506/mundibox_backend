@@ -148,10 +148,28 @@ function crudProducto(req,res,next){
     res.status(400).json(err[0])
   });
 }
+function getMaterialesSelect2(req, res, next) {
+  console.log(db);
+  db.any('select * from producto')
+    .then(function (data) {
+      res.status(200)
+        .json({
+          status: 'success',
+          data: data,
+          message: 'Retrieved ALL tipos'
+        });
+    })
+    .catch(function (err) {
+      console.log(err);
+      res.status(400).json(err)
+    });
+  }
+
 
 module.exports = {
   crudProducto:crudProducto,
   findProductos:findProductos,
   findProductoByCodigoFabricante:findProductoByCodigoFabricante,
-  findProductosByImportacion:findProductosByImportacion
+  findProductosByImportacion:findProductosByImportacion,
+  getMaterialesSelect2:getMaterialesSelect2
 };

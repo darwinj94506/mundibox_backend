@@ -162,8 +162,26 @@ function login(req,res){
       });
   }
   
+function getUsuariosSelect(req, res, next) {
+
+  var SQL = 'select * from usuario where estado=1';
+  db.any(SQL)
+  .then(function (data) {
+      res.status(200)
+      .json(data);
+  }).catch(function (err) {
+    console.log(err);
+    res.status(500)
+    .json(err);
+  });
+}
+
+
+
+  
 
 module.exports = {
+  getUsuariosSelect:getUsuariosSelect,
   findUsuarios:findUsuarios,
   login:login,
   crudUsuario:crudUsuario,
