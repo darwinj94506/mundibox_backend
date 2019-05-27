@@ -45,6 +45,7 @@ function validarDetalle(req, res, next) {
         if (i == (cuerpo.length - 1)) {
             db.any('select * from fun_ime_detalle_egreso_stock($1,$2);', [lista, cuerpo.length])
                 .then(function(data) {
+                    console.log(data);
                     res.status(200)
                         .json({
                             _info_id: data[0]._info_id,
@@ -61,27 +62,12 @@ function validarDetalle(req, res, next) {
     }
 }
 
-function getTipo(req, res, next) {
-    console.log(req);
-    let id = req.params.id;
-    db.any('select * from tipo where idtipo=' + id)
-        .then(function(data) {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    data: data,
-                    message: 'se optuvo el material'
-                });
-        })
-        .catch(function(err) {
-            res.status(500).json(err)
-        });
-}
+
 
 function getDetalleEgreso(req, res, next) {
     var page = req.body.page;
     console.log(req.params.idegreso);
-    db.any('SELECT m.nombre material,i.serie,g.descripcion,p.nombre proveedor, d.cantidad,d.iddetalle,d.estado  FROM detalle_egreso d JOIN ingreso i ON i.idingreso = d.idingreso JOIN material m ON m.idmaterial = i.idmaterial LEFT JOIN garantia g ON g.idgarantia= i.idgarantia LEFT JOIN proveedor p ON p.idproveedor=g.idproveedor where d.idegreso=$1', req.params.idegreso)
+    db.any('SELECT producto.titulo, producto.idproducto, producto.codigo, producto.codigofabricante, d.cantidad, d.preciounitario, e.idegreso, e.total, e.idusuario, e.iva, u.nombres, u.apellidos, u.cedula, u.direccion,e.fecha FROM detalle_egreso d JOIN producto ON producto.idproducto = d.idproducto JOIN egreso e ON e.idegreso = d.idegreso JOIN usuario u ON u.idusuario=e.idsolicitante WHERE d.idegreso = $1', req.params.idegreso)
         .then(function(data) {
             res.status(200)
                 .json({
@@ -101,7 +87,7 @@ function getEgresosPaginacion(req, res, next) {
     console.log(itemsPerPage);
     var page2 = page * itemsPerPage;
     console.log(page2);
-    db.any('select e.idegreso, e.idusuario, u.nombres usuario, e.idsolicitante,s.nombres nombre, s.apellidos apellido, e.fecha, e.observacion, e.estado from egreso e join usuario u on e.idusuario = u.idusuario join usuario s on e.idsolicitante = s.idusuario ORDER BY fecha DESC LIMIT ' + itemsPerPage + ' OFFSET ' + page2)
+    db.any('select e.idegreso, e.idusuario, u.nombres nombresusuario, u.apellidos apellidosusuario ,e.idsolicitante,s.nombres nombres, s.apellidos apellidos,s.direccion,s.telefono,s.correo,s.ciudad,s.cedula,s.referencia, e.fecha, e.observacion, e.estado, e.total, e.iva from egreso e join usuario u on e.idusuario = u.idusuario join usuario s on e.idsolicitante = s.idusuario ORDER BY e.idegreso DESC LIMIT ' + itemsPerPage + ' OFFSET ' + page2)
         .then(function(data) {
             res.status(200)
                 .json({
@@ -109,6 +95,7 @@ function getEgresosPaginacion(req, res, next) {
                 });
         })
         .catch(function(err) {
+            console.log(err);
             res.status(500).json(err)
         });
 }
@@ -131,12 +118,14 @@ function getDetalles(req, res, next) {
 }
 
 function crudEgreso(req, res, next) {
+    console.log(req.user);
+    console.log(req.user.idusuario); //esto viene de middleware autheticated.js
     var SQL = 'select * from  fun_ime_egreso($1, $2, $3, $4, $5, $6,$7);';
-    console.log([req.body.idegreso, req.body.idusuario, req.body.idsolicitante,
+    console.log([req.body.idegreso, req.body.idusuario, req.body.idsolicitante,req.body.total,
         req.body.observacion, req.body.iva, 0, req.body.opcion
     ]);
-    db.any(SQL, [req.body.idegreso, 1, 1,
-            req.body.observacion, req.body.iva, 0, req.body.opcion
+    db.any(SQL, [req.body.idegreso, req.user.idusuario, req.body.idsolicitante,
+            req.body.observacion, req.body.iva, req.body.total, req.body.opcion
         ]).then(function(data) {
             res.status(200)
                 .json(data);

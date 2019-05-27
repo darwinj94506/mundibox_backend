@@ -7,5 +7,6 @@ router.post('/findUsuarioBycedula', UsuarioController.findUsuarioByCedula);
 router.post('/login', UsuarioController.login);
 router.post('/cambiarclave', UsuarioController.cambiarClave);
 router.post('/findUsuarios', UsuarioController.findUsuarios);
+router.post('/datosPersonalesCliente', UsuarioController.datosCliente);
 
 module.exports = router;

@@ -12,9 +12,6 @@ var tipoRouter=require('./routes/tipo.route');
 var usuarioRouter=require('./routes/usuario.route');
 // var ingresoRouter=require('./routes/ingreso.route');
 var egresoRouter=require('./routes/egreso.route');
-// var proveedorRouter=require('./routes/proveedor.route');
-// var garantiaRouter=require('./routes/garantia.route');
-// var reportesRouter=require('./routes/reportes.route');
 
 var productoRouter=require('./routes/producto.route');
 var importacionRouter=require('./routes/importacion.route');
@@ -31,8 +28,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 //-----
-app.use(bodyParser.urlencoded({extended:false}));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({ "limit": "50mb", extended: true, parameterLimit: 1000000 }));
+
 app.use((req,res,next)=>{
   res.header('Access-Control-Allow-Origin','*');
   res.header('Access-Control-Allow-Headers','Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
@@ -40,25 +38,21 @@ app.use((req,res,next)=>{
   res.header('Allow','GET, POST, OPTIONS, PUT, DELETE');
   next();
 });
-
+//comentar para desarrollo
 // app.use('/',express.static('client',{redirect:false}));
 //-----Rutas creadas -------- 
-// app.use('/', indexRouter);
+
 app.use('/api',tipoRouter);
-// app.use('/api',materialRouter);
 app.use('/api',usuarioRouter);
-// app.use('/api',ingresoRouter);
 app.use('/api',egresoRouter);
-// app.use('/api',proveedorRouter);
-// app.use('/api',garantiaRouter);
-// app.use('/api',reportesRouter);
+
 app.use('/api',productoRouter);
 app.use('/api',importacionRouter);
 app.use('/api',importacionProductoRouter);
 app.use('/api',mercadoLibreRouter);
 app.use('/api',publicacionRouter);
 
-
+// comentar para desarrollo
 // app.get('*',function(req,res,next){
 // 	res.sendFile(path.resolve('client/index.html'));
 // })

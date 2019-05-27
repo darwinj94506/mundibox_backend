@@ -44,7 +44,7 @@ function notificaciones(request, response, next) {
     var body=req.body;
     console.log(body);
       if(token){  
-        //primero toca comprobar que el producto no este ya publicado en mec y si esta solo hay que actualizar el stock 
+        //primero comprobar que el producto no este ya publicado en mec y si esta solo hay que actualizar el stock 
         db.any('SELECT * FROM publicacion where idproducto=$1 and estado=1',[body.idproducto])
         .then(function (data) {
             
@@ -53,22 +53,42 @@ function notificaciones(request, response, next) {
                 "available_quantity":body.item.available_quantity
             }
           if(data.length>0){ // si existe ya la publicacion
-
+            //actualiza el stock en mercado libre
             meliObject.put("items/"+publicacion.idplataforma,body2,(err,resp)=>{
                 if(err){
                     console.log(err);
-                    res.status(400).json(err)
+                    res.status(400).json({
+                      result:'ERROR_MEC',
+                      message:err.message
+                    })
                 }else{ 
-                      console.log(resp);
-                      res.status(200).json(resp);
+                      //indicamos que ese item ha sido subido a mec en la tabla importacion_producto 
+                      db.any('UPDATE importacion_producto SET mec=1 ip where ip.idimportacionproducto=$1', [body.idimportacionproducto])
+                      .then(function() {
+                          res.status(200).json({
+                            titulo:body.item.title,
+                            id:body.idproducto                          
+                          })
+                      })
+                      .catch(function(err) {
+                          // console.log(err);
+                          res.status(400).json({
+                              result: 'ERROR',
+                              message: 'Error al actualizar la propiedad mec de importacion_producto'
+                          })
+                      })                    
                 }
             })
           }else{
             meliObject.post("items",body.item,(err,resp)=>{
                 if(err){
                     console.log(err);
-                    res.status(400).json(resp)
+                    res.status(400).json({
+                      result: 'ERROR_MEC',
+                      message: err.message
+                  })
                 }else{
+                  //si se publica correctamenete el producto
                     console.log(resp);   
                       //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************
                     var SQL = 'select * from  fun_ime_publicacion($1,$2,$3,$4,$5,$6,$7);';
@@ -82,12 +102,28 @@ function notificaciones(request, response, next) {
                       1
                     ])
                     .then(function(data){
-                      res.status(200)
-                      .json(data[0]);
+                      //indicamos que ese item ha sido subido a mec en la tabla importacion_producto 
+                        db.any('UPDATE importacion_producto SET mec=1 ip where ip.idimportacionproducto=$1', [body.idimportacionproducto])
+                        .then(function() {
+                            res.status(200).json({
+                              titulo:body.item.title,
+                              id:body.idproducto
+                            })
+                        })
+                        .catch(function(err) {
+                            // console.log(err);
+                            res.status(400).json({
+                                result: 'ERROR',
+                                message: 'Error al actualizar la propiedad mec de la tabla importacion_producto'
+                            })
+                        })
                     })
                     .catch(function (err) {
                       console.log(err);
-                      res.status(400).json(err[0])
+                      res.status(400).json({
+                        result:'Error',
+                        message:err[0]
+                      })
                     });
                     // ************************************************************************************ 
                 //  res.status(200).json(resp)
@@ -98,7 +134,7 @@ function notificaciones(request, response, next) {
             console.log(err);
             res.status(400).json({
                 result:'ERROR AL BUSCAR PUBLICACIONES',
-                message:err
+                message:err[0]
             })
         });
 
@@ -112,12 +148,69 @@ function notificaciones(request, response, next) {
           }); 
       }
   }
+
+  //*********************************************************************************
+  /*actualiza el stock de un producto en mercado libre cuando se ha sacado un producto (facturado), solo si antes ese producto ya ha sido
+  publicado en mercado libre, esto se hace para mantener sincronizado el stock de mi inventario con el de mercado ilbre*/
+  function actualizarStock(req,res,next){
+    var token= tokens.tokens.token;
+    var body=req.body;
+    console.log(body);
+     
+    //primero comprobar que el producto no este ya publicado en mec y si esta solo hay que actualizar el stock 
+    db.any('SELECT * FROM publicacion where idproducto=$1 and estado=1',[body.idproducto])
+    .then(function (data) {
+        var publicacion=data[0];
+        var body2={
+            "available_quantity":body.stock
+        }
+      if(data.length>0){ // si existe ya la publicacion en mercado libre
+        if(token){
+           //actualiza el stock en mercado libre
+          meliObject.put("items/"+publicacion.idplataforma,body2,(err,resp)=>{
+            if(err){
+                console.log(err);
+                res.status(400).json(err)
+            }else{ 
+                  res.status(200).json({
+                    'idproducto':body.idproducto                      
+                  })
+                }
+            })
+        } else{
+          var redirecturi= meliObject.getAuthURL(redirec_uri);
+          console.log(redirecturi);
+          res.status(400).json({
+            result:"TOKEN_REQUERIDO",
+            message:redirecturi
+          }); 
+      }
+      }else{
+        res.status(200).json({
+          result:'Advertencia',
+          message:'Stock no actualizado, este producto no esta publicado en mercado libre'
+        })
+        
+      }
+    }).catch(function (err) {
+        console.log(err);
+        res.status(400).json({
+            result:'ERROR AL BUSCAR PUBLICACIONES',
+            message:err
+        })
+    });
+
+        
+     
+  }
+  //*********************************************************************************
   
 module.exports = {
     respuestaMec:respuestaMec,
     redireccionamientoaMec:redireccionamientoaMec,
     publicarProducto:publicarProducto,
-    notificaciones:notificaciones
+    notificaciones:notificaciones,
+    actualizarStock:actualizarStock
 };
 
   //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************

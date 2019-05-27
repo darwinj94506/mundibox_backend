@@ -47,6 +47,6 @@ db.connect()
       server.on('listening', onListening);
   })
   .catch(function (error) {
-      console.log("ERROR en la coneccion a la base de datos:", error.message);
+      console.log("ERROR en la coneccion a la base de datos:", error);
   });
 

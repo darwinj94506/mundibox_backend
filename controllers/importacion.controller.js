@@ -10,10 +10,10 @@ var db=require('./../bdd.coneccion');
           pageSize = parseInt(queryParams.pageSize);
     var nitems=pageNumber*pageSize;
         
-          db.any('SELECT * FROM importacion i  LIMIT '+pageSize+' OFFSET '+nitems)
+          db.any('SELECT i.idimportacion, i.fecha, i.idusuario, i.numerodocumento, u.nombres, u.apellidos FROM importacion i JOIN usuario u on u.idusuario=i.idusuario  where i.estado=1 LIMIT '+pageSize+' OFFSET '+nitems)
           .then(function (data) {
             var items=data;
-              db.any("select count(*)  from importacion")
+              db.any("select count(*)  from importacion i where i.estado=1")
               .then(function (total) {
                   res.status(200)
                   .json({
@@ -41,7 +41,7 @@ var db=require('./../bdd.coneccion');
 
 function findImportacionById(req,res){
   const idimportacion=req.params.idimportacion;
-  db.any('SELECT * FROM importacion i where i.idimportacion=$1',[idimportacion])
+  db.any('SELECT * FROM importacion i where i.idimportacion=$1 and i.estado=1',[idimportacion])
           .then(function (data) {
             // res.status(200).json({
             //   result:'OK',
@@ -62,23 +62,27 @@ function findImportacionById(req,res){
 
 
 function crudImportacion(req,res,next){
-  var SQL = 'select * from  fun_ime_importacion($1, $2, $3,$4,$5);';
+  console.log(req.user.idusuario);
+  var SQL = 'select * from  fun_ime_importacion($1, $2, $3,$4,$5,$6);';
+
   console.log([
     req.body.idimportacion,
-    req.body.idusuario,
+    req.user.idusuario,
     req.body.fecha, 
     req.body.descripcion,
-    req.body.opcion
+    req.body.opcion,
+    req.body.numerodocumento
   ]);
 
 
 
   db.any(SQL,[
     req.body.idimportacion,
-    req.body.idusuario,
+    req.user.idusuario,
     req.body.fecha, 
     req.body.descripcion,
-    req.body.opcion
+    req.body.opcion,
+    req.body.numerodocumento
   ])
   .then(function(data){
     res.status(200)

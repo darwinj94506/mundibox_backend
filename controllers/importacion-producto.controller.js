@@ -12,7 +12,7 @@ function findProductosByImportacion(req, res) {
 
     var nitems = pageNumber * pageSize;
 
-    db.any('select p.codigo _codigo, _stock, p.codigofabricante _codigofabricante,p.descripcion _descripcion,p.costo _costo,p.imagenes _imagenes, ip.idimportacionproducto,ip.idproducto,ip.idimportacion,ip.cantidad from producto_stock p  join importacion_producto ip on p.idproducto=ip.idproducto  where ip.idimportacion=' + idimportacion + 'LIMIT ' + pageSize + ' OFFSET ' + nitems)
+    db.any('select p.codigo _codigo, _stock, p.codigofabricante _codigofabricante,p.descripcion _descripcion,p.titulo _titulo,p.costo _costo,p.imagenes _imagenes, ip.idimportacionproducto,ip.idproducto,ip.idimportacion,ip.cantidad, ip.mec from producto_stock p  join importacion_producto ip on p.idproducto=ip.idproducto  where ip.idimportacion=' + idimportacion + 'LIMIT ' + pageSize + ' OFFSET ' + nitems)
         .then(function(data) {
             var items = data;
             db.any("select count(*)  from importacion_producto ip where ip.idimportacion=" + idimportacion)
