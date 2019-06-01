@@ -11,15 +11,19 @@ var options = {
 };
 
 var pgp = require('pg-promise')(options);
-const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2";
-// const connectionString = {
-//   host: '172.18.1.146',
-//   port: 5432,
-//   database: 'inventario',
-//   user: 'desarrollo',
-//   password: 'C4S.D3$'
-// };
-var db = pgp(connectionString);
+var URL =  "postgres://webadmin:35v6x9Qds2@192.168.3.182:5432/mundiboxdb_v2";
+// DriverManager.getConnection(URL, darwin, darwin123);
+// const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2";
+
+const connectionString = {
+  host: '192.168.3.182',
+  port: 5432,
+  database: 'mundiboxdb_v2',
+  user: 'webadmin',
+  password: '35v6x9Qds2'
+};
+
+var db = pgp(URL);
 
 module.exports = db;
 
