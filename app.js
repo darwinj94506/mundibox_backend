@@ -6,13 +6,12 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyParser=require('body-parser');
 var app = express();
+//cargar variables de entorno
+require('dotenv').config();
 //cargar rutas declaracion
 var tipoRouter=require('./routes/tipo.route');
-// var materialRouter=require('./routes/material.route');
 var usuarioRouter=require('./routes/usuario.route');
-// var ingresoRouter=require('./routes/ingreso.route');
 var egresoRouter=require('./routes/egreso.route');
-
 var productoRouter=require('./routes/producto.route');
 var importacionRouter=require('./routes/importacion.route');
 var importacionProductoRouter=require('./routes/importacion-producto.route');
