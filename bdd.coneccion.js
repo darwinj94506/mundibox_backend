@@ -40,7 +40,7 @@ const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2"
 console.log(process.env.PASSWORD_DB);
 var pgp = require('pg-promise')(options);
 
-var connectionString =  "postgres://postgres:root@node45590-env-0992479.jl.serv.net.mx:5432/mundiboxdb_v2";
+var connectionString =  process.env.DATABASE_URL;
 
 
 
