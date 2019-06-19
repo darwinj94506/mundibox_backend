@@ -6,7 +6,7 @@ var buscar_upcController = require('./../controllers/bucar_upc.controller');
 var multipart = require('connect-multiparty');
 var md_upload=multipart({uploadDir:'./public/images'});
 // router.post('/getListaTipos', MaterialController.getListaTipos);
-router.post('/upload_images/:id',md_upload,ProductoController.uploadImage);
+router.post('/upload_images',md_upload,ProductoController.uploadImage);
 // router.post('/upload_images', ProductoController.uploadImage);
 router.post('/getMaterialesSelect2', ProductoController.getMaterialesSelect2);
 router.post('/findProductos', ProductoController.findProductos);

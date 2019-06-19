@@ -232,7 +232,6 @@ function getMaterialesSelect2(req, res, next) {
 //     }
 //   }
 function uploadImage(req,res, next){
-    var productoId=req.params.id;
     var file_name='no subido...';
     console.log(req.files);
     var imagenes=req.files.image;
