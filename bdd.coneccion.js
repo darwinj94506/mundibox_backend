@@ -13,37 +13,18 @@ var options = {
 
 
 /*
-
-const connectionString = {
-  host: 'https://node45590-env-0992479.jl.serv.net.mx',
-  port: 5432,
-  database: 'mundiboxdb_v2',
-  user: 'webadmin',
-  password: 'RAMydg13977'
-};
-
-const connectionString = {
-  host: 'node45590-env-0992479.jl.serv.net.mx',
-  port: 5432,
-  database: 'mundiboxdb_v2',
-  user: 'webadmin',
-  password: 'RAMydg13977'
-}; 
-var connectionString =  "postgres://webadmin:RAMydg13977@https://node45590-env-0992479.jl.serv.net.mx:5432/mundiboxdb_v2";
-var connectionString =  "postgres://webadmin:RAMydg13977@node45590-env-0992479.jl.serv.net.mx:5432/mundiboxdb_v2";
-var connectionString =  "postgres://webadmin:RAMydg13977@node45590-env-0992479.jl.serv.net.mx/mundiboxdb_v2";
-
-LA QUE SI VALE LOCALMENTE
+para desarrollo
 const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2";
 */ 
+const connectionString = {
+  host: 'node45981-env-4469298.jl.serv.net.mx',
+  port: 5432,
+  database: 'mundibox_v2',
+  user: 'webadmin',
+  password: 'BSRqbt55732'
+}; 
 
-console.log(process.env.PASSWORD_DB);
 var pgp = require('pg-promise')(options);
-
-var connectionString =  process.env.DATABASE_URL;
-
-
-
 
 var db = pgp(connectionString);
 
