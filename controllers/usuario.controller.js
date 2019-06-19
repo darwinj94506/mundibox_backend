@@ -134,7 +134,6 @@ function login(req, res) {
                 res.status(200)
                     .json({
                         status: 'success',
-                        data: data,
                         message: 'No existe este usuario'
                     });
             } else {
