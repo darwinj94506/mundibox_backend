@@ -19,7 +19,7 @@ const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2"
 const connectionString = {
   host: 'node45981-env-4469298.jl.serv.net.mx',
   port: 5432,
-  database: 'mundibox_v2',
+  database: 'mundiboxdb_v2',
   user: 'webadmin',
   password: 'BSRqbt55732'
 }; 
