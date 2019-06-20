@@ -240,9 +240,9 @@ function uploadImage(req,res, next){
         var sum=0;
         var file_path=req.files.image.path;
         //comentar para desarrollo
-        var file_split=file_path.split('\\'); //almacena solo el nombre del fichero
+        // var file_split=file_path.split('\\'); 
         //descomentar para produccion
-        // var file_split=file_path.split('/');
+        var file_split=file_path.split('/');
 
         var file_name=file_split[2];
         var ext_split=file_name.split('\.');
