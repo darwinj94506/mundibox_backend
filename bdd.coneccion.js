@@ -12,17 +12,17 @@ var options = {
 };
 
 
-/*
-para desarrollo
+//para desarrollo
 const connectionString = "postgres://postgres:root@localhost:5432/mundiboxdb_v2";
-*/ 
-const connectionString = {
-  host: 'node45981-env-4469298.jl.serv.net.mx',
-  port: 5432,
-  database: 'mundiboxdb_v2',
-  user: 'webadmin',
-  password: 'BSRqbt55732'
-}; 
+
+//para produccion
+// const connectionString = {
+//   host: 'node45981-env-4469298.jl.serv.net.mx',
+//   port: 5432,
+//   database: 'mundiboxdb_v2',
+//   user: 'webadmin',
+//   password: 'BSRqbt55732'
+// }; 
 
 var pgp = require('pg-promise')(options);
 

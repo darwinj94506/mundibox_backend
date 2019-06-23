@@ -199,18 +199,31 @@ function notificaciones(request, response, next) {
             message:err
         })
     });
-
-        
-     
   }
-  //*********************************************************************************
+  /*********************************************************************************
+  función que permite actualizar el token de acceso a mercado libre, se ejecuta cada 
+  5 horas 
+  */
+  function actualizarTokenMec(){
+    meliObject.refreshAccessToken()
+    var token;
+    var refresh_token;
+    db.any('UPDATE config SET token=$1, refresh_token=$2', [token,refresh_token])
+    .then(function() {
+      console.log("actualizado nuevo token");
+    })
+    .catch(function(err) {
+      console.log("error al actualizar nuevo token");
+    })             
+  }
   
 module.exports = {
     respuestaMec:respuestaMec,
     redireccionamientoaMec:redireccionamientoaMec,
     publicarProducto:publicarProducto,
     notificaciones:notificaciones,
-    actualizarStock:actualizarStock
+    actualizarStock:actualizarStock,
+    actualizarTokenMec:actualizarTokenMec
 };
 
   //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************
