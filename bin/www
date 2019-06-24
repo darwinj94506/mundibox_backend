@@ -14,7 +14,7 @@ var cron = require('node-cron');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3002');
 
 app.set('port', port);
 
@@ -35,9 +35,15 @@ db.connect()
         obj.done(); // success, release connection;
         server.listen(port, () => {
             console.log('Coneccion la bdd exitosa, El servidor escucha en el puerto:' + port);
+
+            MercadoLibreController.getToken();
             //llama a la tarea de actualizacion del token de mercado libre
-            cron.schedule('2 * * * * *', () => {
-                // MercadoLibreController
+            cron.schedule('* 5 * * *', () => {
+                MercadoLibreController.actualizarTokenMec();
+            });
+            //actualiza las publicaciones vencidas
+            cron.schedule('* 1 * * * *', () => {
+                MercadoLibreController.actualizarPublicacionesVencidas();
             });
 
         });

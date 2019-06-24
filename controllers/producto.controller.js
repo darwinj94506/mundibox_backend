@@ -115,24 +115,6 @@ function findProductos(req, res) {
 
 function crudProducto(req, res, next) {
     var SQL = 'select * from  fun_ime_producto($1, $2, $3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);';
-    console.log([
-        req.body.idproducto,
-        req.body.idtipo,
-        req.body.descripcion,
-        req.body.precio1,
-        req.body.precio2,
-        req.body.precio3,
-        req.body.costo,
-        req.body.codigofabricante,
-        req.body.preciofacturar,
-        req.body.preciomercadolibre,
-        req.body.titulo,
-        req.body.imagenes,
-        req.body.opcion
-
-    ]);
-
-
 
     db.any(SQL, [
             req.body.idproducto,
@@ -175,62 +157,7 @@ function getMaterialesSelect2(req, res, next) {
             res.status(400).json(err)
         });
 }
-//----------------------------------------------------------------------------------------
-// function uploadImage(req,res, next){
-//     var productoId=req.params.id;
-//     var file_name='no subido...';
-//     console.log(req.files);
-//     var imagenes=req.files.image;
-//     if(req.files.image){
-//         var imagenes=req.files.image;
-//         var sum=0;
-//         var imgs=[];
-//         imagenes.forEach((file,index)=>{
-//             var file_path=file.path;
-//             var file_split=file_path.split('\\'); //almacena solo el nombre del fichero
-//             var file_name=file_split[2];
-//             var ext_split=file_name.split('\.');
-//             var file_ext=ext_split[1];
-//             if(file_ext=='png'|| file_ext=='jpg' || file_ext=='jpeg' || file_ext=='gif'){
-//             // if(userId != req.user.sub){
-//             //   return res.status(500).send({message:'no tiene permiso para actualizar el usuario'});
-//             // }
-//             imgs.push(file_name);
-//             if(index==imagenes.length-1){
-//                 // una vez subidas las imagenes al servidor actualiza el producto con el array de imgs subidas
-//                 var SQL = 'UPDATE PRODUCTO SET imagenes = $2 WHERE idproducto = $1';
-//                 db.any(SQL, [
-//                         productoId,
-//                         imgs
-//                     ])
-//                     .then(function(data) {
-//                         res.status(200)
-//                             .json(imgs);
-//                     })
-//                     .catch(function(err) {
-//                         console.log(err);
-//                         res.status(400).json(err[0])
-//                     });
-//                         //---------------------------------------
-//                     }       
-//             }else{
-//             fs.unlink(file_path,(err)=>{
-//                 if(err){
-//                 res.status(200).send({message:'extension no valida y fichero no borrado'});
-//                 }else{
-//                 res.status(200).send({message:'extension no valida'});
-//                 }
-//             });
-    
-//             }
 
-//         })
-      
-
-//     }else{
-//         res.status(200).send({message:'no se ha subido archivos'});
-//     }
-//   }
 function uploadImage(req,res, next){
     var file_name='no subido...';
     console.log(req.files);
