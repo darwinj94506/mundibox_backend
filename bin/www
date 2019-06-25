@@ -38,13 +38,13 @@ db.connect()
 
             MercadoLibreController.getToken();
             //llama a la tarea de actualizacion del token de mercado libre
-            cron.schedule('* 5 * * *', () => {
-                MercadoLibreController.actualizarTokenMec();
-            });
+            // cron.schedule('* 5 * * *', () => {
+            //     MercadoLibreController.actualizarTokenMec();
+            // });
             //actualiza las publicaciones vencidas
-            cron.schedule('* 1 * * * *', () => {
-                MercadoLibreController.actualizarPublicacionesVencidas();
-            });
+            // cron.schedule('* 1 * * * *', () => {
+            //     MercadoLibreController.actualizarPublicacionesVencidas();
+            // });
 
         });
         server.on('error', onError);
