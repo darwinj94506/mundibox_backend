@@ -35,8 +35,7 @@ db.connect()
         obj.done(); // success, release connection;
         server.listen(port, () => {
             console.log('Coneccion la bdd exitosa, El servidor escucha en el puerto:' + port);
-
-            MercadoLibreController.getToken();
+            // MercadoLibreController.getToken();
             //llama a la tarea de actualizacion del token de mercado libre
             // cron.schedule('* 5 * * *', () => {
             //     MercadoLibreController.actualizarTokenMec();
@@ -49,14 +48,10 @@ db.connect()
         });
         server.on('error', onError);
         server.on('listening', onListening);
-
-
     })
     .catch(function(error) {
         console.log("ERROR en la coneccion a la base de datos:", error);
     });
-
-
 
 /**
  * Normalize a port into a number, string, or false.

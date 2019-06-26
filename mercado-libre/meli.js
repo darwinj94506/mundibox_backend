@@ -20,7 +20,7 @@ var config = require('./config.js').config;
  * @param {string} [access_token]
  * @param {string} [refresh_token]
  */
-var Meli = function (client_id, client_secret, access_token, refresh_token) {
+var Meli = function (access_token, refresh_token) {
 
 
    /**
@@ -87,13 +87,13 @@ var Meli = function (client_id, client_secret, access_token, refresh_token) {
      *
      * @param {function} callback function (error,response)
      */
-    this.refreshAccessToken = function (refresh_token,callback) {
+    this.refreshAccessToken = function (callback) {
         var self = this;
         needle.post(config.oauth_url, {
             grant_type: 'refresh_token',
             client_id: _parameters.client_id,
             client_secret: _parameters.client_secret,
-            refresh_token: refresh_token
+            refresh_token: _parameters.refresh_token
         }, {
         }, function (err, res, body) {
             if (body) {
