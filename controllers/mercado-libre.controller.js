@@ -9,6 +9,7 @@ var redirec_uri=config.config.redirect_uri;
 
    //esta funcion y ruta se ejcutan cuando solicito un token y mercado libre me lo envia a esta ruta 
   function respuestaMec(request, response, next) {
+    console.log("respondio mec");
     var code= request.query.code;
     let meliObject = new meli.Meli();
     meliObject.authorize(code,redirec_uri,(err,body)=>{
@@ -45,6 +46,7 @@ function redireccionamientoaMec(request, response, next) {
   
 function publicarProducto(req,res,next){
   let body=req.body;
+  console.log(req.body);
   //optenemos en token de la bdd 
   db.any('SELECT * FROM config where id=1')
     .then(function(data) {
@@ -61,15 +63,37 @@ function publicarProducto(req,res,next){
               }
               //actualiza el stock en mercado libre
               meliObject.put("items/"+publicacion.idplataforma,body2,(err,resp)=>{
+                // console.log(resp);
+                // console.log(err);
                   if(err){
-                      console.log(err);
-                      res.status(400).json({
-                        result:'ERROR_MEC',
-                        message:err.message
-                      })
-                                 
-                  }else{ 
-                        //una vez actualizado en mec indicamos que ese item ha sido subido a mec en la tabla importacion_producto 
+                    res.status(400).json({
+                      result:'ERROR_MEC',
+                      message:err.message,
+                      titulo:body.item.title,
+                      id:body.idproducto
+                    });                                 
+                  }else{
+                    if(resp.error){
+                      if(resp.message=="invalid_token" || resp.message=="expired_token"){
+                          let meliObject2 = new meli.Meli()
+                          let redirecturi= meliObject2.getAuthURL(redirec_uri);
+                          //si el token es incorrecto debe loguearse nuevamente
+                          meliObject2.getAuthURL(redirec_uri);
+                          console.log(redirecturi);
+                          res.status(400).json({
+                            result:"TOKEN_REQUERIDO",
+                            message:redirecturi
+                          }); 
+                        }else{
+                          res.status(400).json({
+                            result:'ERROR_MEC',
+                            message:resp.message,
+                            titulo:body.item.title,
+                            id:body.idproducto
+                          })
+                        }
+                      }else{
+                        //una vez actualizado el stok en mec actualiza el campo de la tabla importacion producto para indicar que ha sido publicado                                    
                         db.any('UPDATE importacion_producto ip SET mec=1 where ip.idproducto=$1', [body.idproducto])
                         .then(function() {
                             res.status(200).json({
@@ -78,26 +102,52 @@ function publicarProducto(req,res,next){
                             })
                         })
                         .catch(function(err) {
-                            console.log(err);
+                            // console.log(err);
                             res.status(400).json({
                                 result: 'ERROR',
                                 message: 'Error al actualizar la propiedad mec de importacion_producto'
                             })
-                        })                    
+                        }) 
+                    }
+                   
+                                           
                   }
               })
             }else{ 
-              console.log(body.item);
+              // console.log(body.item);
               //cuando es la primera vez que se va a subir ese producto
               meliObject.post("items",body.item,(err,resp)=>{
                   if(err){
                       res.status(400).json({
                         result:'ERROR_MEC',
-                        message:err.message
+                        message:err.message,
+                        titulo:body.item.title,
+                        id:body.idproducto
                       }); 
                                   
                   }else{
-                    if(resp.body){
+                    console.log(resp);
+                    if(resp.error){
+                      if(resp.message=="invalid_token" || resp.message=="expired_token"){
+                          let meliObject2 = new meli.Meli()
+                          let redirecturi= meliObject2.getAuthURL(redirec_uri);
+                          //si el token es incorrecto debe loguearse nuevamente
+                          meliObject2.getAuthURL(redirec_uri);
+                          console.log(redirecturi);
+                          res.status(400).json({
+                            result:"TOKEN_REQUERIDO",
+                            message:redirecturi
+                          }); 
+                        }else{
+                          res.status(400).json({
+                            result:'ERROR_MEC',
+                            message:resp.message,
+                            titulo:body.item.title,
+                            id:body.idproducto
+                          })
+                        }
+                      }else{
+                      
                       //si se publica correctamenete el producto
                           //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************
                         var SQL = 'select * from  fun_ime_publicacion($1,$2,$3,$4,$5,$6,$7);';
@@ -112,7 +162,7 @@ function publicarProducto(req,res,next){
                         ])
                         .then(function(data){
                         // una vez creada la publicacion en la bbd actualizar la tabla importacion_producto para indicar que ese item ha sido publicado
-                          db.any('UPDATE importacion_producto ip SET mec=1 where ip.idproducto=$1', [body.idproducto])
+                          db.any('UPDATE importacion_producto ip SET mec=1 where ip.idproducto=$1 and ip.idimportacionproducto=$2', [body.idproducto,body.idimportacionproducto])
                             .then(function() {
                                 res.status(200).json({
                                   titulo:body.item.title,
@@ -122,7 +172,7 @@ function publicarProducto(req,res,next){
                           .catch(function(err) {
                             console.log(err);
                               res.status(400).json({
-                                  result: 'ERROR',
+                                  result: 'ERROR',                               
                                   message: 'Error al actualizar la propiedad mec de la tabla importacion_producto'
                               })
                           })
@@ -131,17 +181,11 @@ function publicarProducto(req,res,next){
                           console.log(err);
                           res.status(400).json({
                             result:'error',
+                            titulo:body.item.title,
                             message:err[0]
                           })
                         });
-                    }else{ //cuando envia error mercado libre
-                      console.log(resp);
-                          res.status(400).json({
-                            result:'ERROR_MEC',
-                            message:resp.message
-                          })
-                    }
-                   
+                    }  
                   }
                 })
             }
@@ -149,6 +193,7 @@ function publicarProducto(req,res,next){
               console.log(err);
               res.status(400).json({
                   result:'ERROR AL BUSCAR PUBLICACIONES',
+                  titulo:body.item.title,
                   message:err[0]
               })
           });
@@ -167,7 +212,8 @@ function publicarProducto(req,res,next){
     .catch(function(err) {
       res.status(400).json({
         result:'ERROR AL OBTENER EL TOKEN DE LA BDD',
-        message:err[0]
+        message:err[0],
+        titulo:body.item.title
       })
       console.log(err);
       console.log("error al obtener el token");
@@ -187,7 +233,7 @@ function publicarProducto(req,res,next){
           let body2={
               "available_quantity":body.stock
           }
-           // si existe ya la publicacion en mercado libre
+           // si existe ya la publicacion en mercado libre, obetener el token para actualizarlo el stock en mec
            db.any('SELECT * FROM config where id=1')
             .then((data)=> {
               if(data.length>0 && data[0].token){
@@ -238,23 +284,31 @@ function publicarProducto(req,res,next){
   5 horas 
   */
   function actualizarTokenMec(){
-    console.log("actualizando el token:"+tokens.tokens.refresh_token);
-    meliObject.refreshAccessToken(tokens.tokens.refresh_token,(err,body)=>{
-      if(err){
-        console.log("error al refrescar token de mec:"+err);
-      }else if(body){
-        console.log(body);
-        tokens.tokens.token=body.access_token;
-        tokens.tokens.refresh_token=body.refresh_token;
-        db.any('UPDATE config SET refresh_token=$1, token=$2 where id=1', [body.refresh_token,body.access_token])
-        .then(function() {
-          console.log("actualizado nuevo token");   
-        })
-        .catch(function(err) {
-          console.log("error al actualizar nuevo token");
-        })             
-      }
-    }) 
+    //obtener el token almacenado en la bdd
+    db.any('SELECT * FROM config where id=1')
+    .then((data)=> {
+        let meliObject = new meli.Meli(data[0].token,data[0].refresh_token);
+         // console.log("actualizando el token:"+tokens.tokens.refresh_token);
+        meliObject.refreshAccessToken((err,body)=>{
+        if(err){
+          console.log("error al refrescar token de mec:"+err);
+        }else if(body){
+          console.log(body);
+          // tokens.tokens.token=body.access_token;
+          // tokens.tokens.refresh_token=body.refresh_token;
+          db.any('UPDATE config SET refresh_token=$1, token=$2 where id=1', [body.refresh_token,body.access_token])
+          .then(function() {
+            console.log("actualizado nuevo token, nuevo access token:"+body.access_token);   
+          })
+          .catch(function(err) {
+            console.log("error al actualizar nuevo token");
+          })             
+        }
+      }) 
+      
+    })
+
+   
   }
 
   function guardarToken(refresh_token,access_token){
@@ -291,71 +345,73 @@ function publicarProducto(req,res,next){
     let now=new Date();
     console.log("fecha actual:"+now);
     // busca los registros vencidos en la bdd, cada registro se crea siempre que crea una nueva publicacion en mec
-    db.any('select _stock, p.costo _costo, pu.idpublicacion,pu.estado,pu.idproducto,pu.idplataforma from producto_stock p  join publicacion pu on p.idproducto=pu.idproducto  where pu.fechavencimiento>$1 and pu.estado=1',now)
-    .then(function(data) {
-      console.log(data);
-      if(data.length>0){
-        data.forEach(pub=>{
-          //por cada registro que este vencido se crea un json para republicarlo en mec
-          let publicacion={
-            "price": pub._costo,
-            "quantity": pub._stock,
-            "listing_type_id": "free"
-          }
-          console.log(publicacion);
-          //hacer una re-publicacion en mec
-          meliObject.post("items",body.item,(err,resp)=>{
-            if(err){
-                console.log(err);
-                res.status(400).json({
-                  result: 'ERROR_MEC',
-                  message: err.message
-              })
-            }else{
-              //si se publica correctamenete el producto
-                console.log(resp);   
-                  //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************
-                var SQL = 'select * from  fun_ime_publicacion($1,$2,$3,$4,$5,$6,$7);';
-                db.any(SQL,[
-                  0,
-                  body.idproducto,
-                  1,
-                  resp.site_id, 
-                  resp.id,
-                  resp.end_time,
-                  1
-                ])
-                .then(function(data){
-                // una vez creada la publicacion en la bbd actualizar la tabla importacion_producto para indicar que ese item ha sido publicado
-                  db.any('UPDATE importacion_producto ip SET mec=1 where ip.idproducto=$1', [body.idproducto])
-                    .then(function() {
-                        res.status(200).json({
-                          titulo:body.item.title,
-                          id:body.idproducto
-                        })
-                  })
-                  .catch(function(err) {
+    db.any('select _stock, p.costo _costo ,pu.idpublicacion,pu.estado,pu.idproducto,pu.idplataforma from producto_stock p  join publicacion pu on p.idproducto=pu.idproducto  where pu.fechavencimiento<$1 and pu.estado=1',now)
+    .then(function(publi) {
+      console.log(publi);
+      if(publi.length>0){
+        //si existen publicaciones, llamo al token
+        db.any('SELECT * FROM config where id=1')
+        .then((token)=> {
+            let meliObject = new meli.Meli(token[0].token,token[0].refresh_token);
+            publi.forEach(pub=>{
+              //por cada registro que este vencido se crea un json para republicarlo en mec
+              let nueva_publicacion={
+                "price": parseFloat(pub._costo),
+                "quantity": pub._stock,
+                "listing_type_id": "free"
+              }
+              console.log(nueva_publicacion);
+              //hacer una re-publicacion en mec, idplataforma es el id con el que se guarda la publicacion en mec
+              meliObject.post(`items/${pub.idplataforma}/relist`,nueva_publicacion,(err,resp)=>{
+                if(err){
                     console.log(err);
-                      res.status(400).json({
-                          result: 'ERROR',
-                          message: 'Error al actualizar la propiedad mec de la tabla importacion_producto'
-                      })
-                  })
-                })
-                .catch(function (err) {
-                  console.log(err);
-                  res.status(400).json({
-                    result:'Error',
-                    message:err[0]
-                  })
-                });
-            }
-          })
-        })
+                }else{
+                  if(resp.error){
+                    console.log("error al republicar");
+                    console.log(resp);
+
+                  }else{ //si se re-publica correctamenete el producto (mercado libre crea una nueva publicacion)
+                     //***********Creamos la publicacion en la bdd local con los datos que nos devulve mec ***************
+                     console.log("republicado correctamente");
+                     console.log(resp);
+                     var SQL = 'select * from  fun_ime_publicacion($1,$2,$3,$4,$5,$6,$7);';
+                     db.any(SQL,[
+                       0,
+                       pub.idproducto,
+                       1,
+                       resp.site_id, 
+                       resp.id,
+                       resp.end_time,
+                       1
+                     ])
+                     .then(function(data){
+                       //una vez creada la nueva publicacion, dar de baja la publicacion anterior, cambiando el estado a cero
+                       db.any('UPDATE PUBLICACION p SET estado=0 where p.idpublicacion=$1', [pub.idpublicacion])
+                            .then(function() {
+                                console.log("id de publicacion actualizada (cerrada):"+pub.idpublicacion);
+                          })
+                          .catch(function(err) {
+                            console.log("error al cambiar estado de publicacion:");  
+                            console.log(err);                         
+                          })                  
+                     })
+                     .catch(function (err) {
+                       console.log("error al crear nueva publicacion de republicacion");
+                       console.log(err);
+                     });
+                  }
+                     
+                }
+              })
+            })
+
+          }).catch(function(err) {
+            console.log("error al obtener el token");
+          })  
       }
     })
     .catch(function(err) {
-      console.log("error en la consulta!!");
+      console.log("error en la consulta  de publicacines vencidas!");
       console.log(err);
     })
   }

@@ -42,7 +42,7 @@ db.connect()
             // });
             //actualiza las publicaciones vencidas
             // cron.schedule('* 1 * * * *', () => {
-            //     MercadoLibreController.actualizarPublicacionesVencidas();
+                MercadoLibreController.actualizarPublicacionesVencidas();
             // });
 
         });
