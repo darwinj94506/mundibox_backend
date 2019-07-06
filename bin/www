@@ -37,13 +37,15 @@ db.connect()
             console.log('Coneccion la bdd exitosa, El servidor escucha en el puerto:' + port);
             // MercadoLibreController.getToken();
             // llama a la tarea de actualizacion del token de mercado libre
-            cron.schedule('* 5 * * *', () => {
-                MercadoLibreController.actualizarTokenMec();
+            cron.schedule('0 0-23/1 * * *', () => {
+                console.log("actulizacion de token cada hora");
+                MercadoLibreController.actualizarTokenMec(); 
             });
             //actualiza las publicaciones vencidas
-            // cron.schedule('* 1 * * * *', () => {
-            // MercadoLibreController.actualizarPublicacionesVencidas();
-            // });
+            cron.schedule('0 1 * * *', () => {
+                console.log("tarea Ejecutada a la 1 ");
+                MercadoLibreController.actualizarPublicacionesVencidas();
+            });
 
         });
         server.on('error', onError);

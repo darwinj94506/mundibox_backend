@@ -4,7 +4,7 @@ var db = require('./../bdd.coneccion');
 var meli = require('../mercado-libre/index.js');
 var config = require("../mercado-libre/config.js");
 // var meliObject = new meli.Meli();
-var tokens = require("../mercado-libre/tokens.js");
+// var tokens = require("../mercado-libre/tokens.js");
 var redirec_uri = config.config.redirect_uri;
 
 //esta funcion y ruta se ejcutan cuando solicito un token y mercado libre me lo envia a esta ruta 
@@ -321,111 +321,56 @@ function guardarToken(refresh_token, access_token) {
         })
 }
 
-//en la bbdd siempre debe existir en la tabla config un registro con id 1
-function getToken() {
-    db.any('SELECT * FROM config where id=1')
-        .then(function(data) {
-            //cuando existe token
-            if (data.length > 0) {
+//MODULO PARA CONVERTIR FUNCIONES ASINCRONAS CON CALLBACK EN PROMISES, ESTA FUNCION SE EJECUTA TODOS LOS DIAS A LA 1 DE LA MAÑANA
+const util=require("util");
 
-            } else {
-
-            }
-            console.log(data);
-            // console.log(data[0].token);
-            // tokens.tokens.token=data[0].token;
-            // tokens.tokens.refresh_token=data[0].refresh_token;
-        })
-        .catch(function(err) {
-            console.log("error al obtener el token");
-        })
-}
-
-function actualizarPublicacionesVencidas() {
+async function  actualizarPublicacionesVencidas() { //TODA ESTA FUNCION SE EJECUTA SINCRONICAMENTE, TODOS LOS DIAS A LA 1:00 AM MEDIANTE UNA TAREA CON EN CRON
     let now = new Date();
-    console.log("fecha actual:" + now);
-    // busca los registros vencidos en la bdd, cada registro se crea siempre que crea una nueva publicacion en mec
-    db.any('select _stock, p.costo _costo ,pu.idpublicacion,pu.estado,pu.idproducto,pu.idplataforma from producto_stock p  join publicacion pu on p.idproducto=pu.idproducto  where pu.fechavencimiento<$1 and pu.estado=1 and _stock > 0', now)
-        .then(function(publicacionesVencidas) {
-            console.log(publicacionesVencidas);
-            if (publicacionesVencidas.length > 0) {
-                var longitudPublicacionesVencidas = publicacionesVencidas.length;
-                //si existen publicaciones, llamo al token
-                db.any('SELECT * FROM config where id=1')
-                    .then((token) => {
-                        let meliObject = new meli.Meli(token[0].token, token[0].refresh_token);
-                        var publicaciones_devueltas_mec = [];
-                        for (var i in publicacionesVencidas) {
-                            //por cada registro que este vencido se crea un json para republicarlo en mec
-                            let nueva_publicacion = {
-                                "price": parseFloat(publicacionesVencidas[i]._costo),
-                                "quantity": publicacionesVencidas[i]._stock,
-                                "listing_type_id": "free"
-                            }
+    try {
+        /*PRIMERO OBTIENES TODAS LAS PUBLICAIONES VENCIDAS, MERCADO LIBRE (MEC) SOLO TIENE ACTIVAS LAS PUBLICAIONES POR 60 DIAS, UNA VEZ 
+        TERMINADO ESE TIEMPO SE DEBE REPUBLICAR ESE PRODUCTO, MERCADO LIBRE OTORGA UN NUEVO ID A ESA PUBLICACION Y HAY QUE GUARDARLA EN LA BDD
+        */
+        const publicacionesVencidas = await db.any('select _stock, p.costo _costo ,pu.idpublicacion,pu.estado,pu.idproducto,pu.idplataforma from producto_stock p  join publicacion pu on p.idproducto=pu.idproducto  where pu.fechavencimiento<$1 and pu.estado=1 and _stock > 0', now)
+        // console.log(publicacionesVencidas);
+        const token= await  db.any('SELECT * FROM config where id=1');
+        // console.log(token);
+        let meliObject = new meli.Meli(token[0].token, token[0].refresh_token);
+        const POSTMEC=util.promisify(meliObject.post) //CONVERSION DE LA FUNCION POST DEL SDK DE MEC A UNA PROMISE LO QUE PERMITE UTILIZAR LA NOTACION ASYNC/AWAIT
 
-                            console.log(nueva_publicacion);
-                            //hacer una re-publicacion en mec, idplataforma es el id con el que se guarda la publicacion en mec
-                            meliObject.post(`items/${publicacionesVencidas[i].idplataforma}/relist`, nueva_publicacion, (err, resp) => {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    if (resp.error) {
-                                        console.log("error al republicar");
-                                        console.log(resp);
-                                    } else { //si se re-publica correctamenete el producto (mercado libre crea una nueva publicacion)
-                                        //***********almacena todas las republicaciones devueltas por mec***************
-                                        let object = {
-                                            "site_id": resp.site_id,
-                                            "id": resp.id,
-                                            "end_time": resp.end_time,
-                                            "idpublicacion": publicacionesVencidas[i].idpublicacion,
-                                            "idproducto": publicacionesVencidas[i].idproducto
-                                        }
-                                        publicaciones_devueltas_mec.push(object);
-                                        if (longitudPublicacionesVencidas == i - 1) {
-                                            //***** formacion de los items devueltos por mec para pasarlos a la funcion de la bdd
-                                            var cuerpo = publicaciones_devueltas_mec;
-                                            var lista = '';
-                                            for (var j in cuerpo) {
-                                                lista += 'select ' + cuerpo[j].site_id + '::character varying site_id,' + cuerpo[j].id + '::integer id,' + cuerpo[j].idpublicacion + '::integer idpublicacion,' + cuerpo[j].idproducto + '::integer idproducto' + cuerpo[j].end_time + '::date end_time';
-                                                if (i == (cuerpo.length - 1)) {
-                                                    lista += ';';
-                                                } else {
-                                                    lista += ' union ';
-                                                }
+        if(publicacionesVencidas.length > 0){
 
-                                                if (j == (cuerpo.length - 1)) {
-                                                    console.log(lista);
-                                                    db.any('select * from  fun_ime_republicacion($1, $2);', [lista, cuerpo.length])
-                                                        .then(function(data) {
-                                                            console.log(data)
-                                                            console.log("republicado correctamente")
-                                                        })
-                                                        .catch(function(err) {
-                                                            console.log("error al republicar");
-                                                            console.log(err);
-                                                        });
-                                                }
-                                            }
-                                        }
-                                    }
+            for (var i in publicacionesVencidas) {
+                //SE DEBE ENVIAR ESTO EN EL BODY (ESTO EXIJE MEC), CON EL PRECIO, STOCK Y PLAN
+                let nueva_publicacion = {
+                    "price": parseFloat(publicacionesVencidas[i]._costo),
+                    "quantity": publicacionesVencidas[i]._stock,
+                    "listing_type_id": "free"
+                }
+                //EN ESTA VARIABLE SE GUARDA EL BODY QUE DEVUELVE MEC CUANDO SE EJECUTA LA TRANSACCION CON ELLOS
+                let body = await POSTMEC(`items/${publicacionesVencidas[i].idplataforma}/relist`, nueva_publicacion);
+                //UNA VEZ REPUBLICADO EN MEC SE DEBE CREAR UNA NUEVA PUBLICAION EN LA BDD CON LA INFORMACION QUE NOS VIENE DE MEC
+                let SQL = 'select * from  fun_ime_publicacion($1,$2,$3,$4,$5,$6,$7);';
+                await db.any(SQL,[0,publicacionesVencidas[i].idproducto,1,body.site_id, body.id,body.end_time,1]);
+                // UNA VEZ CREADA LA NUEVA PUBLICAION SE DEBE ACTUALIZAR EL ESTADO DE LA PUBLICAION VENCIDA A CERO, QUE SIGNIFICA CERRADA Y YA NO SE LA TOMA ENCUENTA.
+                let viejaPublicacion= await db.any('UPDATE publicacion SET estado=0 where idpublicacion=$1',publicacionesVencidas[i].idpublicacion);
+                console.log(viejaPublicacion,"ACTUALIZADO LA PUBLICACION VENCIDA A ESTADO CERO");
+                
+            };
+        }else{
+            console.log("SIN PUBLICACIONES VENCIDAS")
+        }
 
-                                }
-                            })
-                        }
-                    })
-                    .catch(function(err) {
-                        console.log("error al traer el token");
-                        console.log(err);
-                    })
-            } else
-                console.log("No existen publicaiones vencidas")
-        })
-        .catch(function(err) {
-            console.log("error en la consulta de publicaciones vencidas");
-            console.log(err);
-        })
+
+    } catch (error) {
+        console.log("error");
+        console.log(error);
+    }
+    
 }
+
+
+
+
 
 module.exports = {
     respuestaMec: respuestaMec,
@@ -434,6 +379,5 @@ module.exports = {
     notificaciones: notificaciones,
     actualizarStock: actualizarStock,
     actualizarTokenMec: actualizarTokenMec,
-    getToken: getToken,
     actualizarPublicacionesVencidas: actualizarPublicacionesVencidas
 };
