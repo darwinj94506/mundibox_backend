@@ -37,8 +37,8 @@ db.connect()
             console.log('Coneccion la bdd exitosa, El servidor escucha en el puerto:' + port);
             // MercadoLibreController.getToken();
             // llama a la tarea de actualizacion del token de mercado libre
-            cron.schedule('0 0-23/1 * * *', () => {
-                console.log("actulizacion de token cada hora");
+            cron.schedule('0 0-23/4 * * *', () => {
+                console.log("actulizacion de token cada 4 hora");
                 MercadoLibreController.actualizarTokenMec(); 
             });
             //actualiza las publicaciones vencidas

@@ -288,17 +288,15 @@ function actualizarTokenMec() {
     db.any('SELECT * FROM config where id=1')
         .then((data) => {
             let meliObject = new meli.Meli(data[0].token, data[0].refresh_token);
-            // console.log("actualizando el token:"+tokens.tokens.refresh_token);
+            console.log("token actual:"+data[0].token);
             meliObject.refreshAccessToken((err, body) => {
                 if (err) {
                     console.log("error al refrescar token de mec:" + err);
                 } else if (body) {
-                    console.log(body);
-                    // tokens.tokens.token=body.access_token;
-                    // tokens.tokens.refresh_token=body.refresh_token;
+                    // console.log(body);
                     db.any('UPDATE config SET refresh_token=$1, token=$2 where id=1', [body.refresh_token, body.access_token])
                         .then(function() {
-                            console.log("actualizado nuevo token, nuevo access token:" + body.access_token);
+                            console.log("actualizado nuevo token, nuevo token:" + body.access_token);
                         })
                         .catch(function(err) {
                             console.log("error al actualizar nuevo token");
@@ -306,18 +304,6 @@ function actualizarTokenMec() {
                 }
             })
 
-        })
-
-
-}
-
-function guardarToken(refresh_token, access_token) {
-    db.any('UPDATE config SET refresh_token=$1, token=$2 where id=1', [refresh_token, access_token])
-        .then(function() {
-            console.log("token guardado");
-        })
-        .catch(function(err) {
-            console.log("error al guardar nuevo token");
         })
 }
 
