@@ -228,27 +228,58 @@ function actualizarStock(req, res, next) {
     //primero comprobar que el producto no este ya publicado en mec y si esta solo hay que actualizar el stock 
     db.any('SELECT * FROM publicacion where idproducto=$1 and estado=1', [body.idproducto])
         .then(function(data) {
-            if (data.length > 0) {
+            if (data.length > 0) {        
                 let publicacion = data[0];
-                let body2 = {
-                        "available_quantity": body.stock
-                    }
                     // si existe ya la publicacion en mercado libre, obetener el token para actualizarlo el stock en mec
                 db.any('SELECT * FROM config where id=1')
                     .then((data) => {
-                        if (data.length > 0 && data[0].token) {
+                        if (data.length > 0 && data[0].token) {                   
                             let meliObject = new meli.Meli(data[0].token, data[0].refresh_token);
-                            //actualiza el stock en mercado libre
-                            meliObject.put("items/" + publicacion.idplataforma, body2, (err, resp) => {
-                                if (err) {
-                                    console.log(err);
-                                    res.status(400).json(err)
-                                } else {
-                                    res.status(200).json({
-                                        'idproducto': body.idproducto
-                                    })
+                            
+                            //cuando el stock se a terminado se tiene que dar de baja la publicacion en mec y en la bdd
+                            if(body.stock <= 0 ){ 
+                                let body2={ //consultar la documentacion de mec de los estados de las publicaciones
+                                        "status":"closed"
                                 }
-                            })
+                                meliObject.put("items/" + publicacion.idplataforma, body2, (err, resp) => {
+                                    if (err) {
+                                        console.log(err);
+                                        res.status(400).json(err)
+                                    } else {
+                                        //una vez dado de baja en mec, dar de baja la publicacion en la bdd local
+                                        db.any('UPDATE publicacion SET estado=0 where idpublicacion=$1',publicacion.idpublicacion)
+                                            .then(function(data){
+                                                 res.status(200).json({
+                                                'idproducto': body.idproducto
+                                                })
+                                            }).catch(function(err) {
+                                                console.log(err);
+                                                res.status(400).json({
+                                                    result: 'ERROR AL DAR DE BAJA PUBLICACIÓN CON STOCK 0 EN LA BDD',
+                                                    message: err
+                                                })
+                                            });
+                                    }
+                                })               
+
+                            }else{
+                                let body2 = {
+                                    "available_quantity": body.stock
+                                }
+                                //actualiza el stock en mercado libre
+                                meliObject.put("items/" + publicacion.idplataforma, body2, (err, resp) => {
+                                    if (err) {
+                                        console.log(err);
+                                        res.status(400).json(err)
+                                    } else {
+                                        res.status(200).json({
+                                            'idproducto': body.idproducto
+                                        })
+                                    }
+                                })
+
+                            }
+                     
                         } else {
                             let redirecturi = meliObject.getAuthURL(redirec_uri);
                             console.log(redirecturi);
