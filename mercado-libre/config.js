@@ -18,7 +18,7 @@
 // 	redirect_uri : process.env.Redirect_URI,
 // 	site_id : 'MLA'
 // };
-// redirect_uri : 'https://powerful-beach-49426.herokuapp.com',
+// redirect_uri : 'https://ventasmundibox.jl.serv.net.mx/api/subidaMasiva',
 
 var config = {
 	api_root_url: 'https://api.mercadolibre.com',
@@ -27,7 +27,7 @@ var config = {
 	oauth_url: 'https://api.mercadolibre.com/oauth/token',
 	client_id :  '146821082450527',
 	secret_key : 'VBM5frKS6Y9QK0swiJ4sW0LXUGU8im1G',
-	redirect_uri : 'http://localhost:3002/api/subidaMasiva',
+	redirect_uri : 'https://ventasmundibox.jl.serv.net.mx/api/subidaMasiva',
 	site_id : 'MEC'
 };
 
